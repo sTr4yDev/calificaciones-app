@@ -1,0 +1,27 @@
+{
+  "name": "calificaciones-app",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión de Calificaciones con MySQL, Electron, Triggers y Transacciones",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "keywords": [
+    "electron",
+    "mysql",
+    "calificaciones",
+    "crud",
+    "triggers",
+    "transactions"
+  ],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^28.1.0",
+    "mysql2": "^3.6.5"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0"
+  }
+}
