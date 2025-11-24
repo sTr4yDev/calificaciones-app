@@ -1,25 +1,51 @@
-# RAW LINKS — Actualizado 2025-11-20T19:09:15.104Z
+# RAW LINKS - calificaciones-app
+# Actualizado: 2025-11-24T15:39:01.535Z
 # Repositorio: sTr4yDev/calificaciones-app
-# Commit: 321235f8a48eb1c381298c4278341727532d2da5
+# Branch: main
+# Commit: e7e91202148185011a7dd92d68ef18d187375adf
 
-========================= BACKEND LINKS =========================
-https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/config.js
+# ===================================================================
+# USO: Estos enlaces apuntan directamente a los archivos en GitHub
+# Puedes copiarlos y pegarlos en navegador, curl, wget, etc.
+# ===================================================================
 
-========================= FRONTEND LINKS =========================
-https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/database.js
-https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/index.html
+
+========================= ELECTRON / MAIN PROCESS =========================
+# Total: 1 archivos
+
 https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/main.js
-https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/package-lock.json
-https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/package.json
+
+========================= BACKEND / DATABASE =========================
+# Total: 2 archivos
+
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/config.js
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/database.js
+
+========================= FRONTEND / UI =========================
+# Total: 3 archivos
+
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/index.html
 https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/renderer.js
 https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/styles.css
-https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/utils/links.js
 
-========================= DOCS LINKS =========================
+========================= DOCUMENTACION =========================
+# Total: 6 archivos
+
 https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/docs/AI_GUIDELINES.md
 https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/docs/IMPROVEMENT_AREAS.md
 https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/docs/PROJECT_STRUCTURE.md
 https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/docs/README.md
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/utils/README.md
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/utils/raw_links.txt
 
-========================= OTROS =========================
+========================= UTILIDADES =========================
+# Total: 1 archivos
+
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/utils/links.js
+
+========================= CONFIGURACION =========================
+# Total: 3 archivos
+
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/.claude/settings.local.json
 https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/.gitignore
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/package.json

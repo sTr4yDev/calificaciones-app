@@ -195,7 +195,11 @@ class CalificacionesDB {
 
                     INSERT INTO grade_audit_log (action, table_name, record_id, new_value)
                     VALUES ('INSERT', 'grades', NEW.id,
-                            CONCAT('Estudiante: ', NEW.student_id, ', Materia: ', NEW.subject_id, ', Calificación: ', NEW.calificacion));
+                            CONCAT(
+                                'Estudiante: ', (SELECT CONCAT(nombre, ' ', apellido) FROM students WHERE id = NEW.student_id),
+                                ' | Materia: ', (SELECT nombre FROM subjects WHERE id = NEW.subject_id),
+                                ' | Calificación: ', NEW.calificacion
+                            ));
                 END
             `);
             console.log('[SUCCESS] Trigger: trg_update_student_avg_after_insert');
@@ -216,8 +220,14 @@ class CalificacionesDB {
 
                     INSERT INTO grade_audit_log (action, table_name, record_id, old_value, new_value)
                     VALUES ('UPDATE', 'grades', NEW.id,
-                            CONCAT('Calificación anterior: ', OLD.calificacion),
-                            CONCAT('Nueva calificación: ', NEW.calificacion));
+                            CONCAT(
+                                'Estudiante: ', (SELECT CONCAT(nombre, ' ', apellido) FROM students WHERE id = NEW.student_id),
+                                ' | Calificación anterior: ', OLD.calificacion
+                            ),
+                            CONCAT(
+                                'Estudiante: ', (SELECT CONCAT(nombre, ' ', apellido) FROM students WHERE id = NEW.student_id),
+                                ' | Nueva calificación: ', NEW.calificacion
+                            ));
                 END
             `);
             console.log('[SUCCESS] Trigger: trg_update_student_avg_after_update');
@@ -252,7 +262,11 @@ class CalificacionesDB {
                 BEGIN
                     INSERT INTO grade_audit_log (action, table_name, record_id, old_value)
                     VALUES ('DELETE', 'grades', OLD.id,
-                            CONCAT('Estudiante: ', OLD.student_id, ', Calificación eliminada: ', OLD.calificacion));
+                            CONCAT(
+                                'Estudiante: ', (SELECT CONCAT(nombre, ' ', apellido) FROM students WHERE id = OLD.student_id),
+                                ' | Materia: ', (SELECT nombre FROM subjects WHERE id = OLD.subject_id),
+                                ' | Calificación eliminada: ', OLD.calificacion
+                            ));
 
                     UPDATE students
                     SET promedio_general = COALESCE((
@@ -362,9 +376,9 @@ class CalificacionesDB {
 
     async getAllStudents() {
         const [rows] = await this.pool.query(`
-            SELECT s.*, 
+            SELECT s.*,
                    COUNT(g.id) as total_calificaciones,
-                   COALESCE(SUM(CASE WHEN g.calificacion >= 6 THEN 1 ELSE 0 END), 0) as materias_aprobadas
+                   COALESCE(SUM(CASE WHEN g.calificacion >= 70 THEN 1 ELSE 0 END), 0) as materias_aprobadas
             FROM students s
             LEFT JOIN grades g ON s.id = g.student_id
             GROUP BY s.id
@@ -573,14 +587,14 @@ class CalificacionesDB {
 
     async getSubjectStatistics() {
         const [rows] = await this.pool.query(`
-            SELECT 
+            SELECT
                 s.nombre,
                 s.creditos,
                 s.promedio_materia,
                 s.total_estudiantes,
                 COUNT(g.id) as total_calificaciones,
-                SUM(CASE WHEN g.calificacion >= 6 THEN 1 ELSE 0 END) as aprobados,
-                SUM(CASE WHEN g.calificacion < 6 THEN 1 ELSE 0 END) as reprobados
+                SUM(CASE WHEN g.calificacion >= 70 THEN 1 ELSE 0 END) as aprobados,
+                SUM(CASE WHEN g.calificacion < 70 THEN 1 ELSE 0 END) as reprobados
             FROM subjects s
             LEFT JOIN grades g ON s.id = g.subject_id
             GROUP BY s.id

@@ -20,9 +20,10 @@ function createWindow() {
         backgroundColor: '#f8f9fa',
         frame: false, // Ventana sin borde para controles personalizados
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,
-            enableRemoteModule: true
+            preload: path.join(__dirname, 'preload.js'),
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true
         },
         icon: path.join(__dirname, 'assets', 'icon.png') // opcional
     });

@@ -35,70 +35,64 @@
             </div>
         </div>
 
-        <!-- Header -->
-        <header class="modern-header">
-            <div class="container-fluid px-4 py-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="header-title mb-1">
-                            <span class="icon-badge">🎓</span>
-                            Sistema de Gestión de Calificaciones
-                        </h1>
-                        <p class="header-subtitle mb-0">MySQL + Electron | CRUD, Triggers, Transacciones y ROLLBACK</p>
-                    </div>
-                    <div id="database-status">
-                        <span class="badge status-connecting">
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                            Conectando a MySQL...
-                        </span>
-                    </div>
+        <!-- App Layout: Sidebar + Main -->
+        <div class="app-layout">
+            <!-- Sidebar -->
+            <aside class="app-sidebar">
+                <!-- Logo/Header -->
+                <div class="sidebar-header">
+                    <img src="assets/logo.svg" alt="Logo" class="sidebar-logo" onerror="this.style.display='none'">
+                    <h2 class="sidebar-title">Sistema de<br>Calificaciones</h2>
                 </div>
-            </div>
-        </header>
 
-        <!-- Navigation -->
-        <nav class="modern-nav">
-            <div class="container-fluid px-4">
-                <ul class="nav nav-pills nav-modern">
-                    <li class="nav-item">
-                        <button class="nav-link active" data-section="students">
-                            <i class="bi bi-people-fill"></i>
-                            <span>Estudiantes</span>
-                            <span class="badge count-badge" id="students-count">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" data-section="subjects">
-                            <i class="bi bi-book-fill"></i>
-                            <span>Materias</span>
-                            <span class="badge count-badge" id="subjects-count">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" data-section="grades">
-                            <i class="bi bi-clipboard-check-fill"></i>
-                            <span>Calificaciones</span>
-                            <span class="badge count-badge" id="grades-count">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" data-section="reports">
-                            <i class="bi bi-graph-up"></i>
-                            <span>Reportes</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" data-section="demo">
-                            <i class="bi bi-lightning-fill"></i>
-                            <span>Demo SQL</span>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-        </nav>
+                <!-- Estado MySQL -->
+                <div class="sidebar-status" id="database-status">
+                    <span class="badge status-connecting">
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Verificando...
+                    </span>
+                </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
+                <!-- Navegación -->
+                <nav class="sidebar-nav">
+                    <button class="sidebar-nav-item active" data-section="students">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Estudiantes</span>
+                        <span class="badge count-badge" id="students-count">0</span>
+                    </button>
+                    <button class="sidebar-nav-item" data-section="subjects">
+                        <i class="bi bi-book-fill"></i>
+                        <span>Materias</span>
+                        <span class="badge count-badge" id="subjects-count">0</span>
+                    </button>
+                    <button class="sidebar-nav-item" data-section="grades">
+                        <i class="bi bi-clipboard-check-fill"></i>
+                        <span>Calificaciones</span>
+                        <span class="badge count-badge" id="grades-count">0</span>
+                    </button>
+                    <button class="sidebar-nav-item" data-section="reports">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Reportes</span>
+                    </button>
+                </nav>
+
+                <!-- Footer Sidebar -->
+                <div class="sidebar-footer">
+                    <small class="text-muted">
+                        <i class="bi bi-database-fill-gear"></i>
+                        MySQL + Electron
+                    </small>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="app-main">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1 class="page-title" id="page-title">Estudiantes</h1>
+                    <p class="page-subtitle" id="page-subtitle">Gestión de estudiantes registrados</p>
+                </div>
+
             <!-- ========== SECCIÓN ESTUDIANTES ========== -->
             <section id="section-students" class="content-section active">
                 <div class="row g-4">
@@ -120,18 +114,31 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="student-apellido" class="form-label">Apellido *</label>
-                                        <input type="text" class="form-control" id="student-apellido" required>
+                                        <label for="student-apellido1" class="form-label">Primer Apellido *</label>
+                                        <input type="text" class="form-control" id="student-apellido1" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="student-apellido2" class="form-label">Segundo Apellido</label>
+                                        <input type="text" class="form-control" id="student-apellido2">
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="student-matricula" class="form-label">Matrícula *</label>
-                                        <input type="text" class="form-control" id="student-matricula" required>
+                                        <input type="text" class="form-control" id="student-matricula"
+                                               pattern="[0-9]{8}"
+                                               maxlength="8"
+                                               minlength="8"
+                                               placeholder="Ej: 23091000"
+                                               title="La matrícula debe tener exactamente 8 dígitos"
+                                               required>
+                                        <div class="form-text">Debe tener exactamente 8 dígitos (Ej: 23091000)</div>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="student-email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="student-email">
+                                        <label for="student-email" class="form-label">Email *</label>
+                                        <input type="email" class="form-control" id="student-email" readonly required>
+                                        <div class="form-text">Se genera automáticamente con el formato: l{matrícula}@zacatepec.tecnm.mx</div>
                                     </div>
 
                                     <div class="d-grid gap-2">
@@ -211,11 +218,13 @@
                                     <div class="mb-3">
                                         <label for="subject-nombre" class="form-label">Nombre de la Materia *</label>
                                         <input type="text" class="form-control" id="subject-nombre" required>
+                                        <div class="form-text">El nombre debe ser único (no puede repetirse)</div>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="subject-creditos" class="form-label">Créditos *</label>
                                         <input type="number" class="form-control" id="subject-creditos" min="1" max="10" value="3" required>
+                                        <div class="form-text">Entre 1 y 10 créditos</div>
                                     </div>
 
                                     <div class="d-grid">
@@ -305,9 +314,13 @@
 
                                     <div class="mb-3">
                                         <label for="grade-calificacion" class="form-label">Calificación (0-100) *</label>
-                                        <input type="number" class="form-control" id="grade-calificacion"
-                                               min="0" max="100" step="1" required>
-                                        <div class="form-text">Aprobatoria: 70 puntos. El trigger validará automáticamente el rango</div>
+                                        <input type="text" class="form-control" id="grade-calificacion"
+                                               placeholder="Ej: 85"
+                                               maxlength="5"
+                                               pattern="[0-9]*\.?[0-9]+"
+                                               title="Ingresa un número entre 0 y 100"
+                                               required>
+                                        <div class="form-text">Aprobatoria: 70 puntos. Puedes usar decimales (Ej: 85.5)</div>
                                     </div>
 
                                     <div class="mb-3">
@@ -481,138 +494,8 @@
                 </div>
             </section>
 
-            <!-- ========== SECCIÓN DEMO SQL ========== -->
-            <section id="section-demo" class="content-section">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="card shadow-sm border-primary">
-                            <div class="card-header bg-primary text-white">
-                                <h5 class="mb-0"><i class="bi bi-database-fill-gear"></i> Transacción: Inscripción Múltiple</h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted">Inscribe un estudiante en múltiples materias en una sola transacción. Si alguna calificación es inválida (&lt;0 o &gt;10), se ejecuta <strong>ROLLBACK</strong> automático.</p>
-                                
-                                <div class="mb-3">
-                                    <label for="demo-student" class="form-label">Seleccionar Estudiante:</label>
-                                    <select class="form-select" id="demo-student">
-                                        <option value="">-- Seleccionar --</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Materias y Calificaciones:</label>
-                                    <div id="demo-subjects-container"></div>
-                                </div>
-
-                                <button class="btn btn-primary w-100" id="demo-transaction-btn">
-                                    <i class="bi bi-play-fill"></i> Ejecutar Transacción
-                                </button>
-
-                                <div id="demo-transaction-result" class="mt-3"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="card shadow-sm border-danger">
-                            <div class="card-header bg-danger text-white">
-                                <h5 class="mb-0"><i class="bi bi-trash3-fill"></i> Transacción: Eliminar con Cascada</h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="text-muted">Elimina un estudiante y todas sus calificaciones en una transacción atómica. Se ejecuta <strong>COMMIT</strong> si todo es exitoso, o <strong>ROLLBACK</strong> en caso de error.</p>
-                                
-                                <div class="mb-3">
-                                    <label for="demo-delete-student" class="form-label">Seleccionar Estudiante:</label>
-                                    <select class="form-select" id="demo-delete-student">
-                                        <option value="">-- Seleccionar --</option>
-                                    </select>
-                                </div>
-
-                                <div class="alert alert-warning">
-                                    <i class="bi bi-exclamation-triangle"></i> Esta acción eliminará el estudiante y todas sus calificaciones permanentemente.
-                                </div>
-
-                                <button class="btn btn-danger w-100" id="demo-delete-btn">
-                                    <i class="bi bi-trash"></i> Ejecutar Eliminación con Transacción
-                                </button>
-
-                                <div id="demo-delete-result" class="mt-3"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-12">
-                        <div class="card shadow-sm border-info">
-                            <div class="card-header bg-info text-white">
-                                <h5 class="mb-0"><i class="bi bi-lightbulb-fill"></i> Conceptos Demostrados en este Sistema</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <h6><i class="bi bi-check2-circle text-success"></i> CRUD Completo</h6>
-                                        <ul class="small">
-                                            <li>CREATE (INSERT)</li>
-                                            <li>READ (SELECT con JOIN)</li>
-                                            <li>UPDATE</li>
-                                            <li>DELETE con CASCADE</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <h6><i class="bi bi-gear-fill text-warning"></i> Triggers Automáticos</h6>
-                                        <ul class="small">
-                                            <li>Validación de datos</li>
-                                            <li>Cálculo automático de promedios</li>
-                                            <li>Actualización de estadísticas</li>
-                                            <li>Registro de auditoría</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <h6><i class="bi bi-arrow-repeat text-primary"></i> Transacciones</h6>
-                                        <ul class="small">
-                                            <li>START TRANSACTION</li>
-                                            <li>COMMIT</li>
-                                            <li>ROLLBACK automático</li>
-                                            <li>Atomicidad garantizada</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-
-        <!-- Console Panel (derecha, maximizable/minimizable) -->
-        <aside class="console-panel" id="console-panel">
-            <div class="console-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="mb-0 text-success"><i class="bi bi-terminal"></i> Consola MySQL</h6>
-                        <small class="text-muted">Operaciones en tiempo real</small>
-                    </div>
-                    <div>
-                        <button class="btn btn-sm btn-outline-secondary me-1" id="clear-console" title="Limpiar consola">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary" id="toggle-console" title="Minimizar/Maximizar">
-                            <i class="bi bi-arrows-angle-contract"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="console-output" id="console-output">
-                <div class="console-line system">
-                    <span class="timestamp">[00:00:00]</span>
-                    <span class="message">🚀 Sistema iniciado. Conectando a MySQL...</span>
-                </div>
-            </div>
-            <div class="console-footer">
-                <span class="badge bg-secondary" id="console-status">
-                    <i class="bi bi-circle-fill text-warning blink"></i> Conectando...
-                </span>
-            </div>
-        </aside>
+            </main>
+        </div>
     </div>
 
     <!-- Bootstrap JS -->

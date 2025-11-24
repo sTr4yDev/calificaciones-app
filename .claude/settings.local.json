@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npm install)",
-      "Bash(node links.js:*)"
+      "Bash(node links.js:*)",
+      "Bash(styles.css)"
     ],
     "deny": [],
     "ask": []

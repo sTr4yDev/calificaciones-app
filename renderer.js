@@ -3,8 +3,6 @@
  * Maneja toda la interfaz de usuario y comunicacion con el proceso principal
  */
 
-const { ipcRenderer } = require('electron');
-
 // ==================== VARIABLES GLOBALES ====================
 let currentSection = 'students';
 let editingStudentId = null;
@@ -30,31 +28,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Cargar datos iniciales
     await loadAllData();
-
-    // Configurar consola
-    setupConsole();
-
-    // Configurar demos de transacciones
-    setupDemos();
-
-    logToConsole('Sistema listo para usar', 'success');
 });
 
 // ==================== CONTROLES DE VENTANA ====================
 function setupWindowControls() {
     // Botón minimizar
     document.getElementById('minimize-btn').addEventListener('click', () => {
-        ipcRenderer.send('window-minimize');
+        window.electronAPI.minimizeWindow();
     });
 
     // Botón maximizar/restaurar
     document.getElementById('maximize-btn').addEventListener('click', () => {
-        ipcRenderer.send('window-maximize');
+        window.electronAPI.maximizeWindow();
     });
 
     // Botón cerrar
     document.getElementById('close-btn').addEventListener('click', () => {
-        ipcRenderer.send('window-close');
+        window.electronAPI.closeWindow();
     });
 }
 
@@ -63,7 +53,7 @@ async function checkDatabaseConnection() {
     const statusBadge = document.getElementById('database-status');
 
     try {
-        const result = await ipcRenderer.invoke('check-db-connection');
+        const result = await window.electronAPI.checkDbConnection();
 
         if (result.connected) {
             statusBadge.innerHTML = `
@@ -71,14 +61,12 @@ async function checkDatabaseConnection() {
                     <i class="bi bi-database-check"></i> MySQL Conectado
                 </span>
             `;
-            logToConsole('Conectado a MySQL exitosamente', 'success');
         } else {
             statusBadge.innerHTML = `
                 <span class="badge" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-weight: 600;">
                     <i class="bi bi-database-x"></i> MySQL Desconectado
                 </span>
             `;
-            logToConsole(`Error de conexion: ${result.message}`, 'error');
         }
     } catch (error) {
         statusBadge.innerHTML = `
@@ -86,7 +74,6 @@ async function checkDatabaseConnection() {
                 <i class="bi bi-exclamation-triangle"></i> Error MySQL
             </span>
         `;
-        logToConsole(`Error conectando a MySQL: ${error.message}`, 'error');
     }
 }
 
@@ -116,7 +103,17 @@ function switchSection(section) {
     document.getElementById(`section-${section}`).classList.add('active');
     currentSection = section;
 
-    logToConsole(`Cambio a seccion: ${section}`, 'info');
+    // Actualizar título de página
+    const titles = {
+        students: { title: 'Estudiantes', subtitle: 'Gestión de estudiantes registrados' },
+        subjects: { title: 'Materias', subtitle: 'Administración de materias y créditos' },
+        grades: { title: 'Calificaciones', subtitle: 'Registro y gestión de calificaciones' },
+        reports: { title: 'Reportes', subtitle: 'Estadísticas y análisis de rendimiento' }
+    };
+
+    const pageInfo = titles[section] || { title: '', subtitle: '' };
+    document.getElementById('page-title').textContent = pageInfo.title;
+    document.getElementById('page-subtitle').textContent = pageInfo.subtitle;
 }
 
 // ==================== CONFIGURAR FORMULARIOS ====================
@@ -124,6 +121,19 @@ function setupForms() {
     // Formulario de estudiantes
     document.getElementById('student-form').addEventListener('submit', handleStudentSubmit);
     document.getElementById('cancel-student-edit').addEventListener('click', cancelStudentEdit);
+
+    // Listener para generar email automáticamente al escribir matrícula
+    const matriculaInput = document.getElementById('student-matricula');
+    const emailInput = document.getElementById('student-email');
+
+    matriculaInput.addEventListener('input', (e) => {
+        const matricula = e.target.value.trim();
+        if (matricula.length === 8 && /^[0-9]{8}$/.test(matricula)) {
+            emailInput.value = `l${matricula}@zacatepec.tecnm.mx`;
+        } else if (matricula.length === 0) {
+            emailInput.value = '';
+        }
+    });
 
     // Formulario de materias
     document.getElementById('subject-form').addEventListener('submit', handleSubjectSubmit);
@@ -143,17 +153,15 @@ async function loadAllData() {
             loadReports(),
             loadAuditLog()
         ]);
-
-        logToConsole('Todos los datos cargados correctamente', 'success');
     } catch (error) {
-        logToConsole(`Error cargando datos: ${error.message}`, 'error');
+        console.error(`Error cargando datos: ${error.message}`);
     }
 }
 
 // ==================== ESTUDIANTES ====================
 async function loadStudents() {
     try {
-        allStudents = await ipcRenderer.invoke('get-all-students');
+        allStudents = await window.electronAPI.getAllStudents();
 
         const tbody = document.getElementById('students-list');
         tbody.innerHTML = '';
@@ -202,7 +210,7 @@ async function loadStudents() {
         document.getElementById('stat-avg-general').textContent = avgGeneral.toFixed(1);
 
     } catch (error) {
-        logToConsole(`Error cargando estudiantes: ${error.message}`, 'error');
+        console.error(`Error cargando estudiantes: ${error.message}`);
     }
 }
 
@@ -210,27 +218,76 @@ async function handleStudentSubmit(e) {
     e.preventDefault();
 
     const nombre = document.getElementById('student-nombre').value.trim();
-    const apellido = document.getElementById('student-apellido').value.trim();
+    const apellido1 = document.getElementById('student-apellido1').value.trim();
+    const apellido2 = document.getElementById('student-apellido2').value.trim();
     const matricula = document.getElementById('student-matricula').value.trim();
     const email = document.getElementById('student-email').value.trim();
 
+    // Validaciones
+    if (!nombre) {
+        alert('El nombre es obligatorio');
+        return;
+    }
+
+    if (!apellido1) {
+        alert('El primer apellido es obligatorio');
+        return;
+    }
+
+    if (!matricula) {
+        alert('La matrícula es obligatoria');
+        return;
+    }
+
+    // Validar matrícula: exactamente 8 dígitos numéricos
+    if (!/^[0-9]{8}$/.test(matricula)) {
+        alert('La matrícula debe tener exactamente 8 dígitos numéricos');
+        return;
+    }
+
+    if (!email) {
+        alert('El email es obligatorio');
+        return;
+    }
+
+    // Concatenar apellidos
+    const apellido = apellido2 ? `${apellido1} ${apellido2}` : apellido1;
+
+    // Si es un nuevo estudiante, verificar matrícula duplicada
+    if (!editingStudentId) {
+        const matriculaDuplicada = allStudents.find(s => s.matricula === matricula);
+        if (matriculaDuplicada) {
+            alert(`Error: La matrícula "${matricula}" ya está registrada.\n\nEstudiante: ${matriculaDuplicada.nombre} ${matriculaDuplicada.apellido}`);
+            return;
+        }
+    }
+
     try {
         if (editingStudentId) {
-            await ipcRenderer.invoke('update-student', editingStudentId, nombre, apellido, email);
-            logToConsole(`Estudiante actualizado: ${nombre} ${apellido}`, 'success');
+            await window.electronAPI.updateStudent(editingStudentId, nombre, apellido, email);
+            alert(`Estudiante "${nombre} ${apellido}" actualizado exitosamente.`);
             cancelStudentEdit();
         } else {
-            await ipcRenderer.invoke('create-student', nombre, apellido, matricula, email);
-            logToConsole(`Estudiante creado: ${nombre} ${apellido} (${matricula})`, 'success');
+            await window.electronAPI.createStudent(nombre, apellido, matricula, email);
+            alert(`Estudiante "${nombre} ${apellido}" creado exitosamente.\nMatrícula: ${matricula}`);
         }
 
         document.getElementById('student-form').reset();
         await loadStudents();
+        await updateGradeSelects();
         await loadReports();
 
     } catch (error) {
-        logToConsole(`Error: ${error.message}`, 'error');
-        alert(`Error: ${error.message}`);
+        console.error(`Error: ${error.message}`);
+
+        // Manejar errores específicos
+        if (error.message.includes('Duplicate entry') && error.message.includes('matricula')) {
+            alert(`Error: La matrícula "${matricula}" ya está registrada en la base de datos.\n\nPor favor, verifica el número de matrícula.`);
+        } else if (error.message.includes('Duplicate entry')) {
+            alert(`Error: Ya existe un registro con los datos proporcionados.`);
+        } else {
+            alert(`Error al guardar el estudiante: ${error.message}`);
+        }
     }
 }
 
@@ -240,17 +297,21 @@ function editStudent(id) {
 
     editingStudentId = id;
 
+    // Separar apellidos (si hay espacio, dividir en dos partes)
+    const apellidos = student.apellido.split(' ');
+    const apellido1 = apellidos[0] || '';
+    const apellido2 = apellidos.slice(1).join(' ') || '';
+
     document.getElementById('student-id').value = student.id;
     document.getElementById('student-nombre').value = student.nombre;
-    document.getElementById('student-apellido').value = student.apellido;
+    document.getElementById('student-apellido1').value = apellido1;
+    document.getElementById('student-apellido2').value = apellido2;
     document.getElementById('student-matricula').value = student.matricula;
     document.getElementById('student-matricula').disabled = true;
     document.getElementById('student-email').value = student.email || '';
 
     document.getElementById('student-form-title').innerHTML = '<i class="bi bi-pencil"></i> Editar Estudiante';
     document.getElementById('cancel-student-edit').classList.remove('d-none');
-
-    logToConsole(`Editando estudiante: ${student.nombre} ${student.apellido}`, 'info');
 }
 
 function cancelStudentEdit() {
@@ -265,21 +326,20 @@ async function deleteStudent(id, nombre) {
     if (!confirm(`Eliminar estudiante "${nombre}" y todas sus calificaciones?`)) return;
 
     try {
-        await ipcRenderer.invoke('delete-student', id);
-        logToConsole(`Estudiante eliminado: ${nombre}`, 'warning');
+        await window.electronAPI.deleteStudent(id);
         await loadStudents();
         await loadGrades();
         await loadReports();
         await loadAuditLog();
     } catch (error) {
-        logToConsole(`Error eliminando estudiante: ${error.message}`, 'error');
+        console.error(`Error eliminando estudiante: ${error.message}`);
     }
 }
 
 // ==================== MATERIAS ====================
 async function loadSubjects() {
     try {
-        allSubjects = await ipcRenderer.invoke('get-all-subjects');
+        allSubjects = await window.electronAPI.getAllSubjects();
 
         const tbody = document.getElementById('subjects-list');
         tbody.innerHTML = '';
@@ -315,7 +375,6 @@ async function loadSubjects() {
 
         // Actualizar selects de calificaciones
         updateGradeSelects();
-        updateDemoSelects();
 
     } catch (error) {
         logToConsole(`Error cargando materias: ${error.message}`, 'error');
@@ -328,17 +387,44 @@ async function handleSubjectSubmit(e) {
     const nombre = document.getElementById('subject-nombre').value.trim();
     const creditos = parseInt(document.getElementById('subject-creditos').value);
 
+    // Validaciones
+    if (!nombre) {
+        alert('El nombre de la materia es obligatorio');
+        return;
+    }
+
+    if (!creditos || creditos < 1 || creditos > 10) {
+        alert('Los créditos deben estar entre 1 y 10');
+        return;
+    }
+
+    // Verificar si la materia ya existe
+    const materiaExistente = allSubjects.find(s => s.nombre.toLowerCase() === nombre.toLowerCase());
+    if (materiaExistente) {
+        alert(`La materia "${nombre}" ya existe en el sistema.\n\nPor favor, usa un nombre diferente.`);
+        return;
+    }
+
     try {
-        await ipcRenderer.invoke('create-subject', nombre, creditos);
-        logToConsole(`Materia creada: ${nombre} (${creditos} creditos)`, 'success');
+        await window.electronAPI.createSubject(nombre, creditos);
+        console.log(`Materia creada: ${nombre} (${creditos} creditos)`);
 
         document.getElementById('subject-form').reset();
         await loadSubjects();
         await loadReports();
 
+        // Mostrar mensaje de éxito
+        alert(`Materia "${nombre}" creada exitosamente con ${creditos} créditos.`);
+
     } catch (error) {
-        logToConsole(`Error: ${error.message}`, 'error');
-        alert(`Error: ${error.message}`);
+        console.error(`Error: ${error.message}`);
+
+        // Manejar error de duplicado
+        if (error.message.includes('Duplicate entry') || error.message.includes('ER_DUP_ENTRY')) {
+            alert(`Error: La materia "${nombre}" ya existe en la base de datos.\n\nPor favor, usa un nombre diferente.`);
+        } else {
+            alert(`Error al crear la materia: ${error.message}`);
+        }
     }
 }
 
@@ -346,7 +432,7 @@ async function deleteSubject(id, nombre) {
     if (!confirm(`Eliminar materia "${nombre}" y todas sus calificaciones asociadas?`)) return;
 
     try {
-        await ipcRenderer.invoke('delete-subject', id);
+        await window.electronAPI.deleteSubject(id);
         logToConsole(`Materia eliminada: ${nombre}`, 'warning');
         await loadSubjects();
         await loadGrades();
@@ -359,7 +445,7 @@ async function deleteSubject(id, nombre) {
 // ==================== CALIFICACIONES ====================
 async function loadGrades() {
     try {
-        const grades = await ipcRenderer.invoke('get-all-grades');
+        const grades = await window.electronAPI.getAllGrades();
 
         const tbody = document.getElementById('grades-list');
         tbody.innerHTML = '';
@@ -435,21 +521,40 @@ async function handleGradeSubmit(e) {
 
     const studentId = parseInt(document.getElementById('grade-student').value);
     const subjectId = parseInt(document.getElementById('grade-subject').value);
-    const calificacion = parseFloat(document.getElementById('grade-calificacion').value);
+    const calificacionStr = document.getElementById('grade-calificacion').value.trim();
     const periodo = document.getElementById('grade-periodo').value;
 
+    // Validaciones
     if (!studentId || !subjectId) {
         alert('Por favor selecciona un estudiante y una materia');
         return;
     }
 
+    if (!calificacionStr) {
+        alert('La calificación es obligatoria');
+        return;
+    }
+
+    // Validar que sea un número válido
+    const calificacion = parseFloat(calificacionStr);
+    if (isNaN(calificacion)) {
+        alert('La calificación debe ser un número válido.\n\nEjemplos válidos: 85, 90.5, 70');
+        return;
+    }
+
+    // Validar rango 0-100
+    if (calificacion < 0 || calificacion > 100) {
+        alert('La calificación debe estar entre 0 y 100');
+        return;
+    }
+
     try {
         if (editingGradeId) {
-            await ipcRenderer.invoke('update-grade', editingGradeId, calificacion);
+            await window.electronAPI.updateGrade(editingGradeId, calificacion);
             logToConsole(`Calificacion actualizada: ${calificacion}`, 'success');
             cancelGradeEdit();
         } else {
-            await ipcRenderer.invoke('create-grade', studentId, subjectId, calificacion, periodo);
+            await window.electronAPI.createGrade(studentId, subjectId, calificacion, periodo);
             logToConsole(`Calificacion registrada: ${calificacion} (Triggers automaticos ejecutados)`, 'success');
         }
 
@@ -467,12 +572,12 @@ async function handleGradeSubmit(e) {
 }
 
 function editGrade(id) {
-    const newGrade = prompt('Nueva calificacion (0-10):');
+    const newGrade = prompt('Nueva calificacion (0-100):');
     if (newGrade === null) return;
 
     const grade = parseFloat(newGrade);
-    if (isNaN(grade) || grade < 0 || grade > 10) {
-        alert('Calificacion invalida. Debe estar entre 0 y 10.');
+    if (isNaN(grade) || grade < 0 || grade > 100) {
+        alert('Calificación inválida. Debe estar entre 0 y 100.');
         return;
     }
 
@@ -482,7 +587,7 @@ function editGrade(id) {
 
 async function updateGrade(id, calificacion) {
     try {
-        await ipcRenderer.invoke('update-grade', id, calificacion);
+        await window.electronAPI.updateGrade(id, calificacion);
         logToConsole(`Calificacion actualizada: ${calificacion}`, 'success');
 
         await loadGrades();
@@ -507,7 +612,7 @@ async function deleteGrade(id, studentName, subjectName) {
     if (!confirm(`Eliminar calificacion de "${studentName}" en "${subjectName}"?`)) return;
 
     try {
-        await ipcRenderer.invoke('delete-grade', id);
+        await window.electronAPI.deleteGrade(id);
         logToConsole(`Calificacion eliminada: ${studentName} - ${subjectName}`, 'warning');
 
         await loadGrades();
@@ -523,7 +628,7 @@ async function deleteGrade(id, studentName, subjectName) {
 async function loadReports() {
     try {
         // Reporte de estudiantes
-        const studentReport = await ipcRenderer.invoke('get-student-report');
+        const studentReport = await window.electronAPI.getStudentReport();
         const studentsBody = document.getElementById('report-students');
         studentsBody.innerHTML = '';
 
@@ -547,7 +652,7 @@ async function loadReports() {
         }
 
         // Estadisticas de materias
-        const subjectStats = await ipcRenderer.invoke('get-subject-statistics');
+        const subjectStats = await window.electronAPI.getSubjectStatistics();
         const subjectsBody = document.getElementById('report-subjects');
         subjectsBody.innerHTML = '';
 
@@ -577,7 +682,7 @@ async function loadReports() {
 
 async function loadAuditLog() {
     try {
-        const auditLog = await ipcRenderer.invoke('get-audit-log', 50);
+        const auditLog = await window.electronAPI.getAuditLog(50);
         const tbody = document.getElementById('audit-log');
         tbody.innerHTML = '';
 
@@ -605,233 +710,29 @@ async function loadAuditLog() {
     }
 }
 
-// ==================== DEMOS DE TRANSACCIONES ====================
-function setupDemos() {
-    updateDemoSelects();
+// ==================== TOAST NOTIFICATIONS ====================
+function showSuccessToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
 
-    document.getElementById('demo-transaction-btn').addEventListener('click', handleDemoTransaction);
-    document.getElementById('demo-delete-btn').addEventListener('click', handleDemoDelete);
-}
+    const iconMap = {
+        success: 'bi-check-circle-fill',
+        error: 'bi-x-circle-fill',
+        warning: 'bi-exclamation-triangle-fill',
+        info: 'bi-info-circle-fill'
+    };
 
-function updateDemoSelects() {
-    // Select para transaccion
-    const demoStudent = document.getElementById('demo-student');
-    demoStudent.innerHTML = '<option value="">-- Seleccionar --</option>';
-
-    allStudents.forEach(student => {
-        const option = document.createElement('option');
-        option.value = student.id;
-        option.textContent = `${student.nombre} ${student.apellido}`;
-        demoStudent.appendChild(option);
-    });
-
-    // Select para eliminacion
-    const demoDeleteStudent = document.getElementById('demo-delete-student');
-    demoDeleteStudent.innerHTML = '<option value="">-- Seleccionar --</option>';
-
-    allStudents.forEach(student => {
-        const option = document.createElement('option');
-        option.value = student.id;
-        option.textContent = `${student.nombre} ${student.apellido}`;
-        demoDeleteStudent.appendChild(option);
-    });
-
-    // Crear checkboxes de materias
-    const container = document.getElementById('demo-subjects-container');
-    container.innerHTML = '';
-
-    allSubjects.forEach(subject => {
-        const div = document.createElement('div');
-        div.className = 'input-group input-group-sm mb-2';
-        div.innerHTML = `
-            <div class="input-group-text">
-                <input class="form-check-input mt-0 demo-subject-check" type="checkbox"
-                       value="${subject.id}" data-subject="${subject.nombre}">
-            </div>
-            <span class="form-control">${subject.nombre}</span>
-            <input type="number" class="form-control demo-subject-grade"
-                   placeholder="Nota" min="0" max="10" step="0.1"
-                   data-subject-id="${subject.id}" disabled>
-        `;
-        container.appendChild(div);
-    });
-
-    // Habilitar/deshabilitar inputs de calificacion
-    document.querySelectorAll('.demo-subject-check').forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-            const subjectId = e.target.value;
-            const gradeInput = document.querySelector(`.demo-subject-grade[data-subject-id="${subjectId}"]`);
-            gradeInput.disabled = !e.target.checked;
-            if (!e.target.checked) gradeInput.value = '';
-        });
-    });
-}
-
-async function handleDemoTransaction() {
-    const studentId = parseInt(document.getElementById('demo-student').value);
-
-    if (!studentId) {
-        alert('Por favor selecciona un estudiante');
-        return;
-    }
-
-    const checkedSubjects = document.querySelectorAll('.demo-subject-check:checked');
-
-    if (checkedSubjects.length === 0) {
-        alert('Por favor selecciona al menos una materia');
-        return;
-    }
-
-    const subjectIds = [];
-    const grades = [];
-
-    checkedSubjects.forEach(checkbox => {
-        const subjectId = parseInt(checkbox.value);
-        const gradeInput = document.querySelector(`.demo-subject-grade[data-subject-id="${subjectId}"]`);
-        const grade = parseFloat(gradeInput.value);
-
-        if (isNaN(grade)) {
-            alert(`Por favor ingresa una calificacion valida para ${checkbox.dataset.subject}`);
-            return;
-        }
-
-        subjectIds.push(subjectId);
-        grades.push(grade);
-    });
-
-    const resultDiv = document.getElementById('demo-transaction-result');
-
-    try {
-        logToConsole('START TRANSACTION - Inscripcion multiple...', 'info');
-
-        await ipcRenderer.invoke('enroll-student-transaction', studentId, subjectIds, grades);
-
-        resultDiv.innerHTML = `
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle"></i> <strong>COMMIT</strong><br>
-                Transaccion completada exitosamente. ${subjectIds.length} calificaciones registradas.
-            </div>
-        `;
-
-        logToConsole('COMMIT - Transaccion exitosa', 'success');
-
-        // Recargar datos
-        await loadAllData();
-
-        // Limpiar formulario
-        document.querySelectorAll('.demo-subject-check').forEach(cb => cb.checked = false);
-        document.querySelectorAll('.demo-subject-grade').forEach(input => {
-            input.value = '';
-            input.disabled = true;
-        });
-
-    } catch (error) {
-        resultDiv.innerHTML = `
-            <div class="alert alert-danger">
-                <i class="bi bi-x-circle"></i> <strong>ROLLBACK</strong><br>
-                ${error.message}
-            </div>
-        `;
-
-        logToConsole(`ROLLBACK - ${error.message}`, 'error');
-    }
-}
-
-async function handleDemoDelete() {
-    const studentId = parseInt(document.getElementById('demo-delete-student').value);
-
-    if (!studentId) {
-        alert('Por favor selecciona un estudiante');
-        return;
-    }
-
-    const student = allStudents.find(s => s.id === studentId);
-
-    if (!confirm(`REALMENTE deseas eliminar a "${student.nombre} ${student.apellido}" y todas sus calificaciones?`)) {
-        return;
-    }
-
-    const resultDiv = document.getElementById('demo-delete-result');
-
-    try {
-        logToConsole(`START TRANSACTION - Eliminando estudiante ${studentId}...`, 'info');
-
-        await ipcRenderer.invoke('delete-student-transaction', studentId);
-
-        resultDiv.innerHTML = `
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle"></i> <strong>COMMIT</strong><br>
-                Estudiante y todas sus calificaciones eliminados correctamente.
-            </div>
-        `;
-
-        logToConsole('COMMIT - Eliminacion exitosa', 'success');
-
-        // Recargar datos
-        await loadAllData();
-
-        document.getElementById('demo-delete-student').value = '';
-
-    } catch (error) {
-        resultDiv.innerHTML = `
-            <div class="alert alert-danger">
-                <i class="bi bi-x-circle"></i> <strong>ROLLBACK</strong><br>
-                ${error.message}
-            </div>
-        `;
-
-        logToConsole(`ROLLBACK - ${error.message}`, 'error');
-    }
-}
-
-// ==================== CONSOLA ====================
-function setupConsole() {
-    document.getElementById('clear-console').addEventListener('click', clearConsole);
-    document.getElementById('toggle-console').addEventListener('click', toggleConsole);
-}
-
-function logToConsole(message, type = 'info') {
-    const output = document.getElementById('console-output');
-    const timestamp = new Date().toLocaleTimeString();
-
-    const line = document.createElement('div');
-    line.className = `console-line ${type}`;
-    line.innerHTML = `
-        <span class="timestamp">[${timestamp}]</span>
-        <span class="message">${message}</span>
+    toast.innerHTML = `
+        <i class="bi ${iconMap[type]}"></i>
+        <span>${message}</span>
     `;
+    document.body.appendChild(toast);
 
-    output.appendChild(line);
-    output.scrollTop = output.scrollHeight;
-
-    // Limitar a 100 lineas
-    const lines = output.querySelectorAll('.console-line');
-    if (lines.length > 100) {
-        lines[0].remove();
-    }
-}
-
-function clearConsole() {
-    const output = document.getElementById('console-output');
-    output.innerHTML = `
-        <div class="console-line system">
-            <span class="timestamp">[${new Date().toLocaleTimeString()}]</span>
-            <span class="message">Consola limpiada</span>
-        </div>
-    `;
-}
-
-function toggleConsole() {
-    const panel = document.getElementById('console-panel');
-    const icon = document.querySelector('#toggle-console i');
-
-    panel.classList.toggle('minimized');
-
-    if (panel.classList.contains('minimized')) {
-        icon.className = 'bi bi-arrows-angle-expand';
-    } else {
-        icon.className = 'bi bi-arrows-angle-contract';
-    }
+    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 // Exponer funciones globales para botones HTML
