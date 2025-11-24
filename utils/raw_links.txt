@@ -1,0 +1,25 @@
+# RAW LINKS — Actualizado 2025-11-20T19:09:15.104Z
+# Repositorio: sTr4yDev/calificaciones-app
+# Commit: 321235f8a48eb1c381298c4278341727532d2da5
+
+========================= BACKEND LINKS =========================
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/config.js
+
+========================= FRONTEND LINKS =========================
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/database.js
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/index.html
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/main.js
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/package-lock.json
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/package.json
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/renderer.js
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/styles.css
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/utils/links.js
+
+========================= DOCS LINKS =========================
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/docs/AI_GUIDELINES.md
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/docs/IMPROVEMENT_AREAS.md
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/docs/PROJECT_STRUCTURE.md
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/docs/README.md
+
+========================= OTROS =========================
+https://raw.githubusercontent.com/sTr4yDev/calificaciones-app/main/.gitignore

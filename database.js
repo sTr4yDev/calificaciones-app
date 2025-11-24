@@ -87,7 +87,7 @@ class CalificacionesDB {
                     matricula VARCHAR(20) UNIQUE NOT NULL,
                     email VARCHAR(100),
                     fecha_ingreso DATE DEFAULT (CURRENT_DATE),
-                    promedio_general DECIMAL(4,2) DEFAULT 0.00,
+                    promedio_general DECIMAL(5,2) DEFAULT 0.00,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     INDEX idx_matricula (matricula),
                     INDEX idx_nombre (nombre, apellido)
@@ -101,7 +101,7 @@ class CalificacionesDB {
                     id INT PRIMARY KEY AUTO_INCREMENT,
                     nombre VARCHAR(100) UNIQUE NOT NULL,
                     creditos INT NOT NULL DEFAULT 3,
-                    promedio_materia DECIMAL(4,2) DEFAULT 0.00,
+                    promedio_materia DECIMAL(5,2) DEFAULT 0.00,
                     total_estudiantes INT DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     INDEX idx_nombre (nombre)
@@ -115,7 +115,7 @@ class CalificacionesDB {
                     id INT PRIMARY KEY AUTO_INCREMENT,
                     student_id INT NOT NULL,
                     subject_id INT NOT NULL,
-                    calificacion DECIMAL(4,2) NOT NULL,
+                    calificacion DECIMAL(5,2) NOT NULL,
                     periodo VARCHAR(20) DEFAULT 'Semestre 1',
                     fecha_evaluacion DATE DEFAULT (CURRENT_DATE),
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -123,7 +123,7 @@ class CalificacionesDB {
                     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
                     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
                     UNIQUE KEY unique_student_subject_periodo (student_id, subject_id, periodo),
-                    CHECK (calificacion >= 0 AND calificacion <= 10),
+                    CHECK (calificacion >= 0 AND calificacion <= 100),
                     INDEX idx_student (student_id),
                     INDEX idx_subject (subject_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -171,9 +171,9 @@ class CalificacionesDB {
                 BEFORE INSERT ON grades
                 FOR EACH ROW
                 BEGIN
-                    IF NEW.calificacion < 0 OR NEW.calificacion > 10 THEN
+                    IF NEW.calificacion < 0 OR NEW.calificacion > 100 THEN
                         SIGNAL SQLSTATE '45000'
-                        SET MESSAGE_TEXT = 'Calificación debe estar entre 0 y 10';
+                        SET MESSAGE_TEXT = 'Calificación debe estar entre 0 y 100';
                     END IF;
                 END
             `);
@@ -286,8 +286,8 @@ class CalificacionesDB {
                     s.matricula,
                     s.promedio_general,
                     COUNT(g.id) as total_materias,
-                    SUM(CASE WHEN g.calificacion >= 6 THEN 1 ELSE 0 END) as materias_aprobadas,
-                    SUM(CASE WHEN g.calificacion < 6 THEN 1 ELSE 0 END) as materias_reprobadas
+                    SUM(CASE WHEN g.calificacion >= 70 THEN 1 ELSE 0 END) as materias_aprobadas,
+                    SUM(CASE WHEN g.calificacion < 70 THEN 1 ELSE 0 END) as materias_reprobadas
                 FROM students s
                 LEFT JOIN grades g ON s.id = g.student_id
                 GROUP BY s.id, s.nombre, s.apellido, s.matricula, s.promedio_general
@@ -452,8 +452,8 @@ class CalificacionesDB {
                 CONCAT(s.nombre, ' ', s.apellido) as student_name,
                 s.matricula,
                 sub.nombre as subject_name,
-                CASE 
-                    WHEN g.calificacion >= 6 THEN 'Aprobado'
+                CASE
+                    WHEN g.calificacion >= 70 THEN 'Aprobado'
                     ELSE 'Reprobado'
                 END as status
             FROM grades g

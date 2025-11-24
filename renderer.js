@@ -171,8 +171,8 @@ async function loadStudents() {
                 <td>${student.nombre} ${student.apellido}</td>
                 <td><small>${student.email || 'N/A'}</small></td>
                 <td>
-                    <span class="badge ${student.promedio_general >= 8 ? 'bg-success' : student.promedio_general >= 6 ? 'bg-warning' : 'bg-danger'}">
-                        ${parseFloat(student.promedio_general).toFixed(2)}
+                    <span class="badge ${student.promedio_general >= 80 ? 'bg-success' : student.promedio_general >= 70 ? 'bg-warning' : 'bg-danger'}">
+                        ${parseFloat(student.promedio_general).toFixed(1)}
                     </span>
                 </td>
                 <td>
@@ -199,7 +199,7 @@ async function loadStudents() {
         const avgGeneral = allStudents.reduce((sum, s) => sum + parseFloat(s.promedio_general), 0) / totalStudents;
 
         document.getElementById('stat-total-students').textContent = totalStudents;
-        document.getElementById('stat-avg-general').textContent = avgGeneral.toFixed(2);
+        document.getElementById('stat-avg-general').textContent = avgGeneral.toFixed(1);
 
     } catch (error) {
         logToConsole(`Error cargando estudiantes: ${error.message}`, 'error');
@@ -296,8 +296,8 @@ async function loadSubjects() {
                 <td><strong>${subject.nombre}</strong></td>
                 <td><span class="badge bg-info">${subject.creditos} creditos</span></td>
                 <td>
-                    <span class="badge ${subject.promedio_materia >= 8 ? 'bg-success' : subject.promedio_materia >= 6 ? 'bg-warning' : 'bg-danger'}">
-                        ${parseFloat(subject.promedio_materia).toFixed(2)}
+                    <span class="badge ${subject.promedio_materia >= 80 ? 'bg-success' : subject.promedio_materia >= 70 ? 'bg-warning' : 'bg-danger'}">
+                        ${parseFloat(subject.promedio_materia).toFixed(1)}
                     </span>
                 </td>
                 <td>${subject.total_estudiantes} estudiantes</td>
@@ -379,7 +379,7 @@ async function loadGrades() {
                 <td><small>${grade.student_name}<br><span class="text-muted">${grade.matricula}</span></small></td>
                 <td><strong>${grade.subject_name}</strong></td>
                 <td>
-                    <span class="badge bg-${grade.calificacion >= 8 ? 'success' : grade.calificacion >= 6 ? 'warning' : 'danger'} fs-6">
+                    <span class="badge bg-${grade.calificacion >= 80 ? 'success' : grade.calificacion >= 70 ? 'warning' : 'danger'} fs-6">
                         ${parseFloat(grade.calificacion).toFixed(1)}
                     </span>
                 </td>
@@ -535,8 +535,8 @@ async function loadReports() {
                 row.innerHTML = `
                     <td><small><strong>${student.nombre} ${student.apellido}</strong><br>${student.matricula}</small></td>
                     <td>
-                        <span class="badge ${student.promedio_general >= 8 ? 'bg-success' : student.promedio_general >= 6 ? 'bg-warning' : 'bg-danger'}">
-                            ${parseFloat(student.promedio_general).toFixed(2)}
+                        <span class="badge ${student.promedio_general >= 80 ? 'bg-success' : student.promedio_general >= 70 ? 'bg-warning' : 'bg-danger'}">
+                            ${parseFloat(student.promedio_general).toFixed(1)}
                         </span>
                     </td>
                     <td class="text-success"><strong>${student.materias_aprobadas}</strong></td>
@@ -559,8 +559,8 @@ async function loadReports() {
                 row.innerHTML = `
                     <td><strong>${subject.nombre}</strong><br><small>${subject.creditos} creditos</small></td>
                     <td>
-                        <span class="badge ${subject.promedio_materia >= 8 ? 'bg-success' : subject.promedio_materia >= 6 ? 'bg-warning' : 'bg-danger'}">
-                            ${parseFloat(subject.promedio_materia).toFixed(2)}
+                        <span class="badge ${subject.promedio_materia >= 80 ? 'bg-success' : subject.promedio_materia >= 70 ? 'bg-warning' : 'bg-danger'}">
+                            ${parseFloat(subject.promedio_materia).toFixed(1)}
                         </span>
                     </td>
                     <td class="text-success"><strong>${subject.aprobados || 0}</strong></td>
